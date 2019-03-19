@@ -38,80 +38,48 @@
             return {
                 collapse: false,
                 items: [
-                    {
-                        icon: 'el-icon-lx-home',
-                        index: 'dashboard',
-                        title: '系统首页'
-                    },
+
                     {
                         icon: 'el-icon-lx-cascades',
-                        index: 'table',
-                        title: '基础表格'
+                        index: '1',
+                        title: '资产配置',
+                        subs: [
+                            {
+                                index: 'AssetAllocation',
+                                title: '配置资产'
+                            },
+                            {
+                                index: 'MatchRecords',
+                                title: '标的匹配记录'
+                            }
+                        ]
                     },
                     {
-                        icon: 'el-icon-lx-copy',
-                        index: 'tabs',
-                        title: 'tab选项卡'
+                        icon: 'el-icon-rank',
+                        index: '2',
+                        title: '投资人账户',
+                        subs: [
+                            {
+                                index: 'RechargeWithdrawal',
+                                title: '充值提现'
+                            },
+                            {
+                                index: 'InvestorInformation',
+                                title: '投资人信息'
+                            },
+                        ]
                     },
                     {
                         icon: 'el-icon-lx-calendar',
                         index: '3',
-                        title: '表单相关',
+                        title: '咨询信息',
                         subs: [
                             {
-                                index: 'form',
-                                title: '基本表单'
+                                index: 'consultationRecord',
+                                title: '客户咨询记录'
                             },
-                            {
-                                index: '3-2',
-                                title: '三级菜单',
-                                subs: [
-                                    {
-                                        index: 'editor',
-                                        title: '富文本编辑器'
-                                    },
-                                    {
-                                        index: 'markdown',
-                                        title: 'markdown编辑器'
-                                    },
-                                ]
-                            },
-                            {
-                                index: 'upload',
-                                title: '文件上传'
-                            }
                         ]
                     },
-                    {
-                        icon: 'el-icon-lx-emoji',
-                        index: 'icon',
-                        title: '自定义图标'
-                    },
-                    {
-                        icon: 'el-icon-lx-favor',
-                        index: 'charts',
-                        title: 'schart图表'
-                    },
-                    {
-                        icon: 'el-icon-rank',
-                        index: 'drag',
-                        title: '拖拽列表'
-                    },
-                    {
-                        icon: 'el-icon-lx-warn',
-                        index: '6',
-                        title: '错误处理',
-                        subs: [
-                            {
-                                index: 'permission',
-                                title: '权限测试'
-                            },
-                            {
-                                index: '404',
-                                title: '404页面'
-                            }
-                        ]
-                    }
                 ]
             }
         },
