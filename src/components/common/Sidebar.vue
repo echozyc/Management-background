@@ -46,7 +46,7 @@
                         subs: [
                             {
                                 index: 'AssetAllocation',
-                                title: '配置资产'
+                                title: '资产配置记录'
                             },
                             {
                                 index: 'MatchRecords',
