@@ -59,6 +59,7 @@
             handleCommand(command) {
                 if(command == 'loginout'){
                     localStorage.removeItem('ms_username')
+                    // /admin/logout
                     this.$router.push('/login');
                 }
             },

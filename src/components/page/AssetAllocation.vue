@@ -9,14 +9,14 @@
             <div class="handle-box">
                 <el-form :inline="true" :model="searchData.assetSelect" class="demo-form-inline">
                     <el-form-item label="投资人名称">
-                        <el-input v-model="searchData.assetSelect.user" placeholder="投资人名称"></el-input>
+                        <el-input v-model="searchData.assetSelect.investmentname" placeholder="投资人名称"></el-input>
                     </el-form-item>
                     <el-form-item label="投资资产">
-                        <el-select v-model="searchData.assetSelect.region" placeholder="投资资产">
-                            <el-option label="越南资产" value="越南资产"></el-option>
-                            <el-option label="印尼资产" value="印尼资产"></el-option>
-                            <el-option label="俄罗斯资产" value="俄罗斯资产"></el-option>
-                            <el-option label="菲律宾资产" value="菲律宾资产"></el-option>
+                        <el-select v-model="searchData.assetSelect.country" placeholder="投资资产">
+                            <el-option label="越南资产" value="001"></el-option>
+                            <el-option label="印尼资产" value="002"></el-option>
+                            <el-option label="俄罗斯资产" value="003"></el-option>
+                            <el-option label="菲律宾资产" value="004"></el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item label="投资日期">
@@ -32,9 +32,9 @@
                     </el-form-item>
                     <el-form-item label="匹配状态">
                         <el-select v-model="searchData.assetSelect.region" placeholder="匹配状态">
-                            <el-option label="待匹配" value="待匹配"></el-option>
-                            <el-option label="匹配中" value="匹配中"></el-option>
-                            <el-option label="已完成" value="已完成"></el-option>
+                            <el-option label="待匹配" value="w"></el-option>
+                            <el-option label="匹配中" value="d"></el-option>
+                            <el-option label="已完成" value="s"></el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item>
@@ -42,20 +42,20 @@
                     </el-form-item>
                 </el-form>
             </div>
-            <el-table :data="data" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
+            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="date" label="操作流水ID" sortable width="150"></el-table-column>
-                <el-table-column prop="name" label="投资人名称" width="120"></el-table-column>
-                <el-table-column prop="address" label="资产类别" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="投资金额（$）" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="投资利率" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="换算汇率" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="投换算金额(万)" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="预期收益（$）" :formatter="formatter"></el-table-column>
+                <el-table-column prop="serialno" label="操作流水ID" sortable width="150"></el-table-column>
+                <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
+                <el-table-column prop="country" label="资产类别" :formatter="formatter"></el-table-column>
+                <el-table-column prop="investedamount" label="投资金额（$）" :formatter="formatter"></el-table-column>
+                <el-table-column prop="annualizedinterestrate" label="投资利率" :formatter="formatter"></el-table-column>
+                <el-table-column prop="exchangerate" label="换算汇率" :formatter="formatter"></el-table-column>
+                <el-table-column prop="exchangeamount" label="投换算金额(万)" :formatter="formatter"></el-table-column>
+                <el-table-column prop="expectation" label="预期收益（$）" :formatter="formatter"></el-table-column>
                 <el-table-column prop="address" label="投资日期" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="已配置标的数(个)" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="匹配状态" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="操作人" :formatter="formatter"></el-table-column>
+                <el-table-column prop="matchingnum" label="已配置标的数(个)" :formatter="formatter"></el-table-column>
+                <el-table-column prop="matchingstatus" label="匹配状态" :formatter="formatter"></el-table-column>
+                <el-table-column prop="operatorname" label="操作人" :formatter="formatter"></el-table-column>
                 <el-table-column prop="address" label="操作人时间" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
@@ -102,8 +102,10 @@
                 url: './static/vuetable.json',
                 searchData: {
                     assetSelect: {
-                        user: '',
-                        region: ''
+                        investmentname: '',
+                        country: '',
+                        matchingstatus: '',
+
                     },
                     time: '',
                     timeOption: {  // 时间选择器配置
@@ -134,46 +136,23 @@
                         }]
                     }
                 },
+                page: {
+                    pageindex: 1,
+                    pagesize: 20
+                },
                 tableData: [],
                 cur_page: 1,
                 multipleSelection: [],
-                select_cate: '',
-                select_word: '',
                 del_list: [],
-                is_search: false,
-                editVisible: false,
-                delVisible: false,
                 form: {
                     name: '',
                     date: '',
                     address: ''
                 },
-                idx: -1
             }
         },
         created() {
             this.getData();
-        },
-        computed: {
-            data() {
-                return this.tableData.filter((d) => {
-                    let is_del = false;
-                    for (let i = 0; i < this.del_list.length; i++) {
-                        if (d.name === this.del_list[i].name) {
-                            is_del = true;
-                            break;
-                        }
-                    }
-                    if (!is_del) {
-                        if (d.address.indexOf(this.select_cate) > -1 &&
-                            (d.name.indexOf(this.select_word) > -1 ||
-                                d.address.indexOf(this.select_word) > -1)
-                        ) {
-                            return d;
-                        }
-                    }
-                })
-            }
         },
         methods: {
             // 分页导航
@@ -194,7 +173,16 @@
                 })
             },
             search() {
-                this.is_search = true;
+                let data = {
+                    pageindex: 1,
+                    pagesize: 20,
+                    investmentname: this.searchData.assetSelect.investmentname, // 投资方名称
+                    country: this.searchData.assetSelect.country, // 国家（投资类型） 001：越南，002：印尼，003：菲律宾，004：俄罗斯
+                    matchingstatus: this.searchData.assetSelect.matchingstatus,// 匹配状态  d:匹配中，s：匹配完成，w：待匹配
+                    startdate: this.searchData.time,
+                    enddate: this.searchData.time,
+                }
+                // /admin/getassetsconfiglist
             },
             formatter(row, column) {
                 return row.address;

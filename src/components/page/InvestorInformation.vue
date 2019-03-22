@@ -12,7 +12,7 @@
                         <el-input v-model="searchData.assetSelect.user" placeholder="投资人名称"></el-input>
                     </el-form-item>
                     <el-form-item label="投资人类型">
-                        <el-select v-model="searchData.assetSelect.region" placeholder="投资人类型">
+                        <el-select v-model="searchData.assetSelect.type" placeholder="投资人类型">
                             <el-option label="机构用户" value="机构用户"></el-option>
                             <el-option label="个人用户" value="个人用户"></el-option>
                         </el-select>
@@ -36,18 +36,18 @@
                     <el-button type="primary" @click="editVisible = true">新增用户</el-button>
                 </el-row>
             </div>
-            <el-table :data="data" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
+            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="date" label="用户ID" sortable width="150"></el-table-column>
-                <el-table-column prop="name" label="投资人类型" width="120"></el-table-column>
-                <el-table-column prop="address" label="投资人名称" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="证件号" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="开户邮箱" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="业务联系人" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="联系电话" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="联系地址" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="法人姓名" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="法人证件号" :formatter="formatter"></el-table-column>
+                <el-table-column prop="investmentid" label="用户ID" sortable width="150"></el-table-column>
+                <el-table-column prop="investmenttype" label="投资人类型" width="120"></el-table-column>
+                <el-table-column prop="investmentname" label="投资人名称" :formatter="formatter"></el-table-column>
+                <el-table-column prop="legalcertificate" label="证件号" :formatter="formatter"></el-table-column>
+                <el-table-column prop="investmentemail" label="开户邮箱" :formatter="formatter"></el-table-column>
+                <el-table-column prop="contactperson" label="业务联系人" :formatter="formatter"></el-table-column>
+                <el-table-column prop="investmentphone" label="联系电话" :formatter="formatter"></el-table-column>
+                <el-table-column prop="investmentaddress" label="联系地址" :formatter="formatter"></el-table-column>
+                <el-table-column prop="legalname" label="法人姓名" :formatter="formatter"></el-table-column>
+                <el-table-column prop="legalcertificate" label="法人证件号" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000"></el-pagination>
@@ -65,33 +65,33 @@
                 </el-form-item>
                 <br>
                 <el-form-item label="企业名称：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.investmentname"></el-input>
                 </el-form-item>
                 <el-form-item label="营业执照：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.investmentid"></el-input>
                 </el-form-item>
                 <el-form-item label="开户邮箱：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.investmentemail"></el-input>
                 </el-form-item>
                 <el-form-item label="联系地址：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.investmentaddress"></el-input>
                 </el-form-item>
                 <el-form-item label="业务联系人名称：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.contactperson"></el-input>
                 </el-form-item>
                 <el-form-item label="联系电话：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.investmentphone"></el-input>
                 </el-form-item>
                 <el-form-item label="法人名称：">
-                    <el-input v-model="dialogData.form.name"></el-input>
+                    <el-input v-model="dialogData.form.legalname"></el-input>
                 </el-form-item>
                 <el-form-item label="法人证件号码：">
-                    <el-input v-model="dialogData.form.address"></el-input>
+                    <el-input v-model="dialogData.form.legalcertificate"></el-input>
                 </el-form-item>
 
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="editVisible = false">取 消</el-button>
+                <el-button @click="add">取 消</el-button>
                 <el-button type="primary" @click="saveEdit">确 定</el-button>
             </span>
         </el-dialog>
@@ -116,7 +116,7 @@
                 searchData: {
                     assetSelect: {
                         user: '',
-                        region: ''
+                        type: ''
                     },
                     time: '',
                     timeOption: {  // 时间选择器配置
@@ -147,6 +147,10 @@
                         }]
                     }
                 },
+                page: {
+                    pageindex: '',
+                    pagesize: 20,
+                },
                 dialogData: {
                     rules: {
                         type: [
@@ -160,9 +164,14 @@
                     },
                     form: {
                         type: '',
-                        name: '',
-                        date: '',
-                        address: ''
+                        investmentname: '',
+                        investmentid: '',
+                        investmentemail: '',
+                        investmentaddress: '',
+                        contactperson: '',
+                        investmentphone: '',
+                        legalname: '',
+                        legalcertificate: '',
                     },
                 },
                 tableData: [],
@@ -170,42 +179,33 @@
                 multipleSelection: [],
                 select_cate: '',
                 select_word: '',
-                del_list: [],
-                is_search: false,
                 editVisible: false,
                 delVisible: false,
-                idx: -1
             }
         },
         created() {
             this.getData();
-        },
-        computed: {
-            data() {
-                return this.tableData.filter((d) => {
-                    let is_del = false;
-                    for (let i = 0; i < this.del_list.length; i++) {
-                        if (d.name === this.del_list[i].name) {
-                            is_del = true;
-                            break;
-                        }
-                    }
-                    if (!is_del) {
-                        if (d.address.indexOf(this.select_cate) > -1 &&
-                            (d.name.indexOf(this.select_word) > -1 ||
-                                d.address.indexOf(this.select_word) > -1)
-                        ) {
-                            return d;
-                        }
-                    }
-                })
-            }
         },
         methods: {
             // 分页导航
             handleCurrentChange(val) {
                 this.cur_page = val;
                 this.getData();
+            },
+            add () {
+                let data = {
+                    type: '',
+                    investmentname: '',
+                    investmentid: '',
+                    investmentemail: '',
+                    investmentaddress: '',
+                    contactperson: '',
+                    investmentphone: '',
+                    legalname: '',
+                    legalcertificate: '',
+                };
+                // /admin/addinterestedinfo
+                this.editVisible = false
             },
             // 获取 easy-mock 的模拟数据
             getData() {
@@ -220,7 +220,15 @@
                 })
             },
             search() {
-                this.is_search = true;
+                let data = {
+                    pageindex: this.page.pageindex,
+                    pagesize: this.page.pagesize,
+                    investmenttype: this.searchData.assetSelect.type, // 投资方类型0：公司，1：个人
+                    investmentname:  this.searchData.assetSelect.user, // 投资方名称
+                    startdate: this.searchData.time,
+                    enddate: this.searchData.time
+                }
+                // /admin/getinterestedlist
             },
             formatter(row, column) {
                 return row.address;

@@ -9,12 +9,13 @@
             <div class="handle-box">
                 <el-form :inline="true" :model="searchData.assetSelect" class="demo-form-inline">
                     <el-form-item label="投资人名称">
-                        <el-input v-model="searchData.assetSelect.user" placeholder="投资人名称"></el-input>
+                        <el-input v-model="searchData.assetSelect.investmentname" placeholder="投资人名称"></el-input>
                     </el-form-item>
                     <el-form-item label="操作类型">
-                        <el-select v-model="searchData.assetSelect.region" placeholder="操作类型">
-                            <el-option label="充值" value="充值"></el-option>
-                            <el-option label="提现" value="提现"></el-option>
+                        <el-select v-model="searchData.assetSelect.trandtype" placeholder="操作类型">
+                            <!--交易类型 1：充值, 4：提现-->
+                            <el-option label="充值" value="1"></el-option>
+                            <el-option label="提现" value="2"></el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item label="操作日期">
@@ -39,13 +40,13 @@
             </div>
             <el-table :data="data" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="date" label="操作流水号" sortable width="150"></el-table-column>
-                <el-table-column prop="name" label="投资人名称" width="120"></el-table-column>
-                <el-table-column prop="address" label="交易类型" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="金额（$）" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="操作人" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="操作时间" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="备注" :formatter="formatter"></el-table-column>
+                <el-table-column prop="serialno" label="操作流水号" sortable width="150"></el-table-column>
+                <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
+                <el-table-column prop="trandtype" label="交易类型" :formatter="formatter"></el-table-column>
+                <el-table-column prop="amount" label="金额（$）" :formatter="formatter"></el-table-column>
+                <el-table-column prop="summary" label="操作人" :formatter="formatter"></el-table-column>
+                <el-table-column prop="updatedatetime" label="操作时间" :formatter="formatter"></el-table-column>
+                <el-table-column prop="summary" label="备注" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000"></el-pagination>
@@ -91,8 +92,9 @@
                 url: './static/vuetable.json',
                 searchData: {
                     assetSelect: {
-                        user: '',
-                        region: ''
+                        investmentname: '',
+                        trandtype: '',
+
                     },
                     time: '',
                     timeOption: {  // 时间选择器配置
@@ -123,6 +125,10 @@
                         }]
                     }
                 },
+                page: {
+                    pageindex: 1,
+                    pagesize: 20
+                },
                 tableData: [],
                 cur_page: 1,
                 multipleSelection: [],
@@ -143,27 +149,6 @@
         created() {
             this.getData();
         },
-        computed: {
-            data() {
-                return this.tableData.filter((d) => {
-                    let is_del = false;
-                    for (let i = 0; i < this.del_list.length; i++) {
-                        if (d.name === this.del_list[i].name) {
-                            is_del = true;
-                            break;
-                        }
-                    }
-                    if (!is_del) {
-                        if (d.address.indexOf(this.select_cate) > -1 &&
-                            (d.name.indexOf(this.select_word) > -1 ||
-                                d.address.indexOf(this.select_word) > -1)
-                        ) {
-                            return d;
-                        }
-                    }
-                })
-            }
-        },
         methods: {
             // 分页导航
             handleCurrentChange(val) {
@@ -183,7 +168,15 @@
                 })
             },
             search() {
-                this.is_search = true;
+                let data = {
+                    pageindex: this.page.pageindex,
+                    pagesize: this.page.pagesize,
+                    investmentname: this.searchData.assetSelect.investmentname,
+                    trandtype: this.searchData.assetSelect.trandtype, // 交易类型 1：充值, 4：提现
+                    startdate: this.searchData.time,
+                    enddate: this.searchData.time,
+                }
+                // /admin/getaccounttrandlist
             },
             formatter(row, column) {
                 return row.address;
