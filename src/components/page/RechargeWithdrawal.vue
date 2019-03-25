@@ -34,11 +34,11 @@
                     </el-form-item>
                 </el-form>
                 <el-row>
-                    <el-button type="primary" @click="search">充值</el-button>
-                    <el-button type="primary" @click="search">提现</el-button>
+                    <el-button type="primary" @click="recharge">充值</el-button>
+                    <el-button type="primary" @click="withdraw">提现</el-button>
                 </el-row>
             </div>
-            <el-table :data="data" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
+            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="serialno" label="操作流水号" sortable width="150"></el-table-column>
                 <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
@@ -54,22 +54,57 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="50px">
-                <el-form-item label="日期">
-                    <el-date-picker type="date" placeholder="选择日期" v-model="form.date" value-format="yyyy-MM-dd" style="width: 100%;"></el-date-picker>
-                </el-form-item>
-                <el-form-item label="姓名">
+        <el-dialog title="充值" :visible.sync="editVisible" width="30%">
+            <el-form ref="form" :model="form" label-width="100px">
+                <el-form-item label="投资人名称">
                     <el-input v-model="form.name"></el-input>
                 </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
+                <el-form-item label="提现金额">
+                    <el-input v-model="form.num"></el-input>
+                </el-form-item>
+                <el-form-item label="币种">
+                    <el-select v-model="form.type" placeholder="币种">
+                        <el-option label="人民币" value="人民币"></el-option>
+                        <el-option label="美元" value="美元"></el-option>
+                        <el-option label="印尼盾" value="印尼盾"></el-option>
+                        <el-option label="越南盾" value="越南盾"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input type="textarea" v-model="form.text"></el-input>
                 </el-form-item>
 
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
-                <el-button type="primary" @click="saveEdit">确 定</el-button>
+                <el-button type="primary" @click="rechargeSure()">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <el-dialog title="提现" :visible.sync="editVisible2" width="30%">
+            <el-form ref="form" :model="form2" label-width="100px">
+                <el-form-item label="投资人名称">
+                    <el-input v-model="form2.name"></el-input>
+                </el-form-item>
+                <el-form-item label="提现金额">
+                    <el-input v-model="form2.num"></el-input>
+                </el-form-item>
+                <el-form-item label="币种">
+                    <el-select v-model="form2.type" placeholder="币种">
+                        <el-option label="人民币" value="人民币"></el-option>
+                        <el-option label="美元" value="美元"></el-option>
+                        <el-option label="印尼盾" value="印尼盾"></el-option>
+                        <el-option label="越南盾" value="越南盾"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input type="textarea" v-model="form2.text"></el-input>
+                </el-form-item>
+
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="editVisible2 = false">取 消</el-button>
+                <el-button type="primary" @click="withdrawSure">确 定</el-button>
             </span>
         </el-dialog>
 
@@ -85,6 +120,7 @@
 </template>
 
 <script>
+    import ajax from '../../utils/fetch'
     export default {
         name: 'RechargeWithdrawal',
         data() {
@@ -137,11 +173,20 @@
                 del_list: [],
                 is_search: false,
                 editVisible: false,
+                editVisible2: false,
+
                 delVisible: false,
                 form: {
                     name: '',
-                    date: '',
-                    address: ''
+                    num: '',
+                    type: '',
+                    text: ''
+                },
+                form2: {
+                    name: '',
+                    num: '',
+                    type: '',
+                    text: ''
                 },
                 idx: -1
             }
@@ -168,16 +213,92 @@
                 })
             },
             search() {
+                // if(this.searchData.assetSelect.investmentname === '') {
+                //     return this.$message.error('投资方名称不能为空');
+                // } else if(this.searchData.assetSelect.trandtype === '') {
+                //     return this.$message.error('操作类型不能为空');
+                // } else if(this.searchData.time === '') {
+                //     return this.$message.error('操作日期不能为空');
+                // }
+
+                let moment = require('moment')
                 let data = {
-                    pageindex: this.page.pageindex,
+                    pageindex:  this.cur_page,
                     pagesize: this.page.pagesize,
                     investmentname: this.searchData.assetSelect.investmentname,
                     trandtype: this.searchData.assetSelect.trandtype, // 交易类型 1：充值, 4：提现
-                    startdate: this.searchData.time,
-                    enddate: this.searchData.time,
+                    startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
+                    enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
                 }
-                // /admin/getaccounttrandlist
+                console.log(data)
+                ajax.post('/admin/getaccounttrandlist', data)
+                    .then(res => {
+                        let {head, body} = res;
+                        if (head && head.returncode === '0000') {
+                            let data = body.data;
+                        }
+                        console.log(res)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    })
+
             },
+            //充值
+            recharge() {
+                this.editVisible = true
+            },
+            //充值确认
+            rechargeSure() {
+                let data = {
+                    investmentname: this.form.name,
+                    amount: this.form.num,
+                    investmenttype: '1',  //1充值 4提现
+                    summary: this.form.text,
+                    币种: this.form.type,  //这他妈啥啊 参数呢
+                }
+                console.log(data)
+                ajax.post('/admin/addaccounttrandinfo', data)
+                    .then(res => {
+                        let {head, body} = res;
+                        if (head && head.returncode === '0000') {
+                            let data = body.data;
+                        }
+                        console.log(res)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    })
+            },
+
+            //提现
+            withdraw() {
+                this.editVisible2 = true
+            },
+
+            withdrawSure() {
+                let data = {
+                    investmentname: this.form2.name,
+                    amount: this.form2.num,
+                    investmenttype: '4',  //1充值 4提现
+                    summary: this.form2.text,
+                    币种: this.form2.type,  //这他妈啥啊 参数呢
+                }
+                console.log(data)
+                ajax.post('/admin/addaccounttrandinfo', data)
+                    .then(res => {
+                        let {head, body} = res;
+                        if (head && head.returncode === '0000') {
+                            let data = body.data;
+                        }
+                        console.log(res)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    })
+
+            },
+
             formatter(row, column) {
                 return row.address;
             },

@@ -13,8 +13,8 @@
                     </el-form-item>
                     <el-form-item label="投资人类型">
                         <el-select v-model="searchData.assetSelect.type" placeholder="投资人类型">
-                            <el-option label="机构用户" value="机构用户"></el-option>
-                            <el-option label="个人用户" value="个人用户"></el-option>
+                            <el-option label="机构用户" value="0"></el-option>
+                            <el-option label="个人用户" value="1"></el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item label="日期">
@@ -64,22 +64,22 @@
                     </el-select>
                 </el-form-item>
                 <br>
-                <el-form-item label="企业名称：">
+                <el-form-item label="企业名称*：">
                     <el-input v-model="dialogData.form.investmentname"></el-input>
                 </el-form-item>
-                <el-form-item label="营业执照：">
+                <el-form-item label="营业执照*：">
                     <el-input v-model="dialogData.form.investmentid"></el-input>
                 </el-form-item>
-                <el-form-item label="开户邮箱：">
+                <el-form-item label="开户邮箱*：">
                     <el-input v-model="dialogData.form.investmentemail"></el-input>
                 </el-form-item>
                 <el-form-item label="联系地址：">
                     <el-input v-model="dialogData.form.investmentaddress"></el-input>
                 </el-form-item>
-                <el-form-item label="业务联系人名称：">
+                <el-form-item label="业务联系人名称*：">
                     <el-input v-model="dialogData.form.contactperson"></el-input>
                 </el-form-item>
-                <el-form-item label="联系电话：">
+                <el-form-item label="联系电话*：">
                     <el-input v-model="dialogData.form.investmentphone"></el-input>
                 </el-form-item>
                 <el-form-item label="法人名称：">
@@ -92,7 +92,7 @@
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="add">取 消</el-button>
-                <el-button type="primary" @click="saveEdit">确 定</el-button>
+                <el-button type="primary" @click="add">确 定</el-button>
             </span>
         </el-dialog>
 
@@ -108,6 +108,8 @@
 </template>
 
 <script>
+    import ajax from '../../utils/fetch'
+
     export default {
         name: 'InvestorInformation',
         data() {
@@ -193,18 +195,38 @@
                 this.getData();
             },
             add () {
+                // if(this.dialogData.form.investmentaddress === '') {
+                //     return this.$message.error('联系地址不能为空');
+                // } else if(this.dialogData.form.legalname === '') {
+                //     return this.$message.error('法人名称不能为空');
+                // } else if(this.dialogData.form.legalcertificate === '') {
+                //     return this.$message.error('法人证件号码不能为空');
+                // }
+
                 let data = {
-                    type: '',
-                    investmentname: '',
-                    investmentid: '',
-                    investmentemail: '',
-                    investmentaddress: '',
-                    contactperson: '',
-                    investmentphone: '',
-                    legalname: '',
-                    legalcertificate: '',
+                    investmenttype: this.dialogData.form.type,
+                    investmentname: this.dialogData.form.investmentname,
+                    investmentid: this.dialogData.form.investmentid,
+                    investmentemail: this.dialogData.form.investmentemail,
+                    investment_address: this.dialogData.form.investmentaddress,
+                    contactperson: this.dialogData.form.contactperson,
+                    investmentphone: this.dialogData.form.investmentphone,
+                    legalname: this.dialogData.form.legalname,
+                    legalcertificate: this.dialogData.form.legalcertificate
                 };
-                // /admin/addinterestedinfo
+                console.log(data)
+                ajax.post('/admin/addinterestedinfo', data)
+                    .then(res => {
+                        let {head, body} = res;
+                        if (head && head.returncode === '0000') {
+                            let data = body.data;
+                        }
+                        console.log(res)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    })
+
                 this.editVisible = false
             },
             // 获取 easy-mock 的模拟数据
@@ -220,15 +242,35 @@
                 })
             },
             search() {
+                // if(this.searchData.assetSelect.user === '') {
+                //     return this.$message.error('投资方名称不能为空');
+                // } else if(this.searchData.assetSelect.type === '') {
+                //     return this.$message.error('投资人类型不能为空');
+                // } else if(this.searchData.time === '') {
+                //     return this.$message.error('投资日期不能为空');
+                // }
+
+                let moment = require("moment");
                 let data = {
-                    pageindex: this.page.pageindex,
+                    pageindex:  this.cur_page,
                     pagesize: this.page.pagesize,
                     investmenttype: this.searchData.assetSelect.type, // 投资方类型0：公司，1：个人
                     investmentname:  this.searchData.assetSelect.user, // 投资方名称
-                    startdate: this.searchData.time,
-                    enddate: this.searchData.time
+                    startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
+                    enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
                 }
-                // /admin/getinterestedlist
+                console.log(data)
+                ajax.post('admin/getinterestedlist', data)
+                    .then(res => {
+                        let {head, body} = res;
+                        if (head && head.returncode === '0000') {
+                            let data = body.data;
+                        }
+                        console.log(res)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    })
             },
             formatter(row, column) {
                 return row.address;

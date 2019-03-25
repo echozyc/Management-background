@@ -53,6 +53,8 @@
 </template>
 
 <script>
+    import ajax from '../../utils/fetch'
+
     export default {
         name: 'consultationRecord',
         data() {
@@ -130,15 +132,35 @@
                 })
             },
             search() {
-                // /interested/getlist
+                // if(this.searchData.assetSelect.user === '') {
+                //     return this.$message.error('投资方名称不能为空');
+                // } else if(this.searchData.assetSelect.region === '') {
+                //     return this.$message.error('处理状态不能为空');
+                // } else if(this.searchData.time === '') {
+                //     return this.$message.error('日期不能为空');
+                // }
+
+                let moment = require("moment");
                 let data = {
-                    pageindex: this.page.pageindex,
+                    pageindex: this.page.cur_page,
                     pagesize: this.page.pagesize,
-                    investmentname: this.submitData.name, // 投资人/投资机构名
-                    startdate: this.submitData.start,
-                    enddate: this.submitData.end,
-                    status: this.submitData.status, // 处理状态
+                    investmentname: this.searchData.assetSelect.user, // 投资人/投资机构名
+                    startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
+                    enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
+                    status:  this.searchData.assetSelect.region, // 处理状态
                 }
+                console.log(data)
+                ajax.post('/interested/getlist', data)
+                    .then(res => {
+                        let {head, body} = res;
+                        if (head && head.returncode === '0000') {
+                            let data = body.data;
+                        }
+                        console.log(res)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                    })
             },
             formatter(row, column) {
                 return row.address;

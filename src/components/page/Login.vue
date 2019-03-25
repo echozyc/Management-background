@@ -23,6 +23,8 @@
 </template>
 
 <script>
+    import ajax from '../../utils/fetch'
+
     export default {
         data: function(){
             return {
@@ -56,7 +58,24 @@
                         return false;
                     }
                 });
-            }
+            },
+
+            //  submitForm() {
+            //     ajax.post('/admin/login', {
+            //         email: this.ruleForm.username,
+            //         password: this.ruleForm.password
+            //     })
+            //         .then(res => {
+            //             let {head, body} = res;
+            //             if (head && head.returncode === '0000') {
+            //                 let data = body.data;
+            //             }
+            //             console.log(res)
+            //         })
+            //         .catch(e => {
+            //             console.log(e);
+            //         })
+            // }
         }
     }
 </script>

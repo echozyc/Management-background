@@ -41,6 +41,10 @@
                         <el-button type="primary" @click="search">查询</el-button>
                     </el-form-item>
                 </el-form>
+
+                <el-row>
+                    <el-button type="primary" @click="editVisible = true">新增配置资产</el-button>
+                </el-row>
             </div>
             <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
@@ -59,21 +63,29 @@
                 <el-table-column prop="address" label="操作人时间" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
-                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000"></el-pagination>
+                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="100"></el-pagination>
             </div>
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="50px">
-                <el-form-item label="日期">
-                    <el-date-picker type="date" placeholder="选择日期" v-model="form.date" value-format="yyyy-MM-dd" style="width: 100%;"></el-date-picker>
-                </el-form-item>
-                <el-form-item label="姓名">
+        <el-dialog title="充值" :visible.sync="editVisible" width="30%">
+            <el-form ref="form" :model="form" label-width="100px">
+                <el-form-item label="投资人名称">
                     <el-input v-model="form.name"></el-input>
                 </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
+                <el-form-item label="提现金额">
+                    <el-input v-model="form.num"></el-input>
+                </el-form-item>
+                <el-form-item label="币种">
+                    <el-select v-model="form.type" placeholder="币种">
+                        <el-option label="人民币" value="人民币"></el-option>
+                        <el-option label="美元" value="美元"></el-option>
+                        <el-option label="印尼盾" value="印尼盾"></el-option>
+                        <el-option label="越南盾" value="越南盾"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input type="textarea" v-model="form.text"></el-input>
                 </el-form-item>
 
             </el-form>
@@ -82,29 +94,25 @@
                 <el-button type="primary" @click="saveEdit">确 定</el-button>
             </span>
         </el-dialog>
-
-        <!-- 删除提示框 -->
-        <el-dialog title="提示" :visible.sync="delVisible" width="300px" center>
-            <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="delVisible = false">取 消</el-button>
-                <el-button type="primary" @click="deleteRow">确 定</el-button>
-            </span>
-        </el-dialog>
     </div>
 </template>
 
 <script>
+    import ajax from '../../utils/fetch'
+
     export default {
         name: 'basetable',
         data() {
             return {
                 url: './static/vuetable.json',
+                editVisible: '',
+
                 searchData: {
                     assetSelect: {
                         investmentname: '',
                         country: '',
                         matchingstatus: '',
+                        region: ''
 
                     },
                     time: '',
@@ -158,7 +166,8 @@
             // 分页导航
             handleCurrentChange(val) {
                 this.cur_page = val;
-                this.getData();
+                // this.getData();
+                this.search()
             },
             // 获取 easy-mock 的模拟数据
             getData() {
@@ -173,16 +182,38 @@
                 })
             },
             search() {
+                // if(this.searchData.assetSelect.investmentname === '') {
+                //     return this.$message.error('投资方名称不能为空');
+                // } else if(this.searchData.assetSelect.country === '') {
+                //     return this.$message.error('投资资产不能为空');
+                // } else if(this.searchData.assetSelect.region === '') {
+                //     return this.$message.error('匹配状态不能为空');
+                // } else if(this.searchData.time === '') {
+                //     return this.$message.error('投资日期不能为空');
+                // }
+
+                let moment = require("moment");
                 let data = {
-                    pageindex: 1,
+                    pageindex: this.cur_page,
                     pagesize: 20,
                     investmentname: this.searchData.assetSelect.investmentname, // 投资方名称
                     country: this.searchData.assetSelect.country, // 国家（投资类型） 001：越南，002：印尼，003：菲律宾，004：俄罗斯
-                    matchingstatus: this.searchData.assetSelect.matchingstatus,// 匹配状态  d:匹配中，s：匹配完成，w：待匹配
-                    startdate: this.searchData.time,
-                    enddate: this.searchData.time,
+                    matchingstatus: this.searchData.assetSelect.region,// 匹配状态  d:匹配中，s：匹配完成，w：待匹配
+                    startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
+                    enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
                 }
-                // /admin/getassetsconfiglist
+                console.log(data)
+                    ajax.post('/admin/getassetsconfiglist', data)
+                        .then(res => {
+                            let {head, body} = res;
+                            if (head && head.returncode === '0000') {
+                                let data = body.data;
+                            }
+                            console.log(res)
+                        })
+                        .catch(e => {
+                            console.log(e);
+                        })
             },
             formatter(row, column) {
                 return row.address;
@@ -198,7 +229,7 @@
                     date: item.date,
                     address: item.address
                 }
-                this.editVisible = true;
+                // this.editVisible = true;
             },
             handleDelete(index, row) {
                 this.idx = index;
@@ -210,7 +241,7 @@
             // 保存编辑
             saveEdit() {
                 this.$set(this.tableData, this.idx, this.form);
-                this.editVisible = false;
+                // this.editVisible = false;
                 this.$message.success(`修改第 ${this.idx+1} 行成功`);
             },
             // 确定删除
