@@ -43,7 +43,7 @@
                 </el-form>
             </div>
             <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
-                <el-table-column prop="serialno" label="匹配流水ID" sortable width="150"></el-table-column>
+                <el-table-column prop="serialno" label="匹配流水ID" width="150"></el-table-column>
                 <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
                 <el-table-column prop="orderid" label="借款订单号" :formatter="formatter"></el-table-column>
                 <el-table-column prop="name" label="借款人" :formatter="formatter"></el-table-column>
@@ -53,10 +53,10 @@
                 <el-table-column prop="days" label="借款天数" :formatter="formatter"></el-table-column>
                 <el-table-column prop="startdate" label="起投日期" :formatter="formatter"></el-table-column>
                 <el-table-column prop="enddate" label="到期日期" :formatter="formatter"></el-table-column>
-                <el-table-column prop="status" label="还款状态" :formatter="formatter"></el-table-column>
+                <el-table-column prop="status | formatPayBack" label="还款状态" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
-                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000"></el-pagination>
+                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
             </div>
         </div>
 
@@ -64,7 +64,8 @@
 </template>
 
 <script>
-    import ajax from '../../utils/fetch'
+    import ajax from '../../utils/fetch';
+    import moment from 'moment';
     export default {
         name: 'MatchRecords',
         data() {
@@ -115,13 +116,14 @@
                     end: ''
                 },
                 page: {
-                    pageindex: '',
+                    pageindex: 1,
                     pagesize: 20,
+                    counttotal: 0,
                 },
             }
         },
         created() {
-            this.getData();
+            this.search();
         },
         methods: {
             handleSelectionChange(val) {
@@ -130,19 +132,7 @@
             // 分页导航
             handleCurrentChange(val) {
                 this.page.pageindex = val;
-                this.getData();
-            },
-            // 获取 easy-mock 的模拟数据
-            getData() {
-                // 开发环境使用 easy-mock 数据，正式环境使用 json 文件
-                if (process.env.NODE_ENV === 'development') {
-                    this.url = '/ms/table/list';
-                };
-                this.$axios.post(this.url, {
-                    page: this.page.pageindex
-                }).then((res) => {
-                    this.tableData = res.data.list;
-                })
+                this.search();
             },
             search() {
                 // if(this.searchData.assetSelect.user === '') {
@@ -155,24 +145,29 @@
                 //     return this.$message.error('投资日期不能为空');
                 // }
 
-                let moment = require('moment')
                 let data = {
                     pageindex: this.page.pageindex,
                     pagesize: this.page.pagesize,
                     investmentname: this.searchData.assetSelect.user, // 投资方名称
                     country: this.searchData.assetSelect.region, // 国家（投资类型） 001：越南，002：印尼，003：菲律宾，004：俄罗斯
                     paybackstatus: this.searchData.assetSelect.status,// 还款状态 s:已还款,w:待还款，m:已逾期
-                    startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
-                    enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
+                    startdate: this.searchData.time ? '' + moment(this.searchData.time[0]).valueOf() : '',
+                    enddate: this.searchData.time ? '' + moment(this.searchData.time[1]).valueOf() : '',
                 };
                 console.log(data)
                 ajax.post('/admin/getmatchinglist', data)
                     .then(res => {
                         let {head, body} = res;
                         if (head && head.returncode === '0000') {
-                            let data = body.data;
+                            if (body && body.list) {
+                                this.tableData = body.list;
+                                this.tableData.map(item => {
+                                    item.sex = item.sex === 'm' ? '男' : '女';
+                                });
+                                this.page.counttotal = body.counttotal;
+                            }
                         }
-                        console.log(res)
+
                     })
                     .catch(e => {
                         console.log(e);

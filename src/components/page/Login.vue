@@ -23,7 +23,7 @@
 </template>
 
 <script>
-    import ajax from '../../utils/fetch'
+    import ajax from '@/utils/fetch.js';
 
     export default {
         data: function(){
@@ -51,6 +51,17 @@
                             password: this.ruleForm.password
                         };
                         // /admin/login
+                        ajax.post('/admin/login', data)
+                            .then(res => {
+                                let {head, body} = res;
+                                if (head && head.returncode === '0000') {
+                                    const name = body.name;
+
+                                }
+                            })
+                            .catch(e => {
+                                console.log(e)
+                            })
                         localStorage.setItem('ms_username',this.ruleForm.username);
                         this.$router.push('/');
                     } else {

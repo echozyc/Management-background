@@ -39,12 +39,13 @@
 </template>
 <script>
     import bus from '../common/bus';
+    import ajax from '@/utils/fetch.js';
     export default {
         data() {
             return {
                 collapse: false,
                 fullscreen: false,
-                name: 'linxin',
+                name: 'admin',
                 message: 2
             }
         },
@@ -58,9 +59,18 @@
             // 用户名下拉菜单选择事件
             handleCommand(command) {
                 if(command == 'loginout'){
-                    localStorage.removeItem('ms_username')
+                    localStorage.removeItem('ms_username');
                     // /admin/logout
-                    this.$router.push('/login');
+                    ajax.post('/admin/logout')
+                        .then(res => {
+                            let {head, body} = res;
+                            if (head && head.returncode === '0000') {
+                                this.$router.push('/login');
+                            }
+                        })
+                        .catch(e => {
+                            console.log(e);
+                        })
                 }
             },
             // 侧边栏折叠

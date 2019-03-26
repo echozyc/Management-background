@@ -35,17 +35,16 @@
                 </el-form>
             </div>
             <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
-                <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="investmentname" label="投资人名称" sortable width="150"></el-table-column>
+                <el-table-column prop="investmentname" label="投资人名称" width="150"></el-table-column>
                 <el-table-column prop="investmentamount" label="计划投资金额" width="120"></el-table-column>
                 <el-table-column prop="contactperson" label="联系人名称" :formatter="formatter"></el-table-column>
                 <el-table-column prop="investmentphone" label="联系电话" :formatter="formatter"></el-table-column>
                 <el-table-column prop="investmentemail" label="联系邮箱" :formatter="formatter"></el-table-column>
-                <el-table-column prop="status" label="处理状态" :formatter="formatter"></el-table-column>
-                <el-table-column prop="optiontype" label="操作" :formatter="formatter"></el-table-column>
+                <el-table-column prop="status | formatOperateStatus" label="处理状态" :formatter="formatter"></el-table-column>
+                <el-table-column prop="optiontype | formatOperaType" label="操作" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
-                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000"></el-pagination>
+                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
             </div>
         </div>
 
@@ -53,13 +52,12 @@
 </template>
 
 <script>
-    import ajax from '../../utils/fetch'
-
+    import ajax from '../../utils/fetch';
+    import moment from 'moment';
     export default {
         name: 'consultationRecord',
         data() {
             return {
-                url: './static/vuetable.json',
                 searchData: {
                     assetSelect: {
                         user: '',
@@ -96,10 +94,9 @@
                 },
                 tableData: [],
                 page: {
-                    cur_page: 1,
-                    pageindex: '',
+                    pageindex: 1,
                     pagesize: 20,
-
+                    counttotal: 0,
                 },
                 multipleSelection: [],
                 submitData: {
@@ -111,26 +108,14 @@
             }
         },
         created() {
-            this.getData();
+
         },
         methods: {
             // 分页导航
             handleCurrentChange(val) {
-                this.page.cur_page = val;
-                this.getData();
+                this.page.pageindex = val;
             },
-            // 获取 easy-mock 的模拟数据
-            getData() {
-                // 开发环境使用 easy-mock 数据，正式环境使用 json 文件
-                if (process.env.NODE_ENV === 'development') {
-                    this.url = '/ms/table/list';
-                };
-                this.$axios.post(this.url, {
-                    page: this.page.cur_page
-                }).then((res) => {
-                    this.tableData = res.data.list;
-                })
-            },
+
             search() {
                 // if(this.searchData.assetSelect.user === '') {
                 //     return this.$message.error('投资方名称不能为空');
@@ -140,7 +125,6 @@
                 //     return this.$message.error('日期不能为空');
                 // }
 
-                let moment = require("moment");
                 let data = {
                     pageindex: this.page.cur_page,
                     pagesize: this.page.pagesize,
@@ -148,15 +132,17 @@
                     startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
                     enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
                     status:  this.searchData.assetSelect.region, // 处理状态
-                }
-                console.log(data)
+                };
                 ajax.post('/interested/getlist', data)
                     .then(res => {
                         let {head, body} = res;
                         if (head && head.returncode === '0000') {
-                            let data = body.data;
+                            if (body && body.list) {
+                                let data = body.list;
+                                this.tableData = data;
+                                this.page.counttotal = body.counttotal;
+                            }
                         }
-                        console.log(res)
                     })
                     .catch(e => {
                         console.log(e);

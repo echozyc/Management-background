@@ -50,7 +50,7 @@
                 <el-table-column prop="legalcertificate" label="法人证件号" :formatter="formatter"></el-table-column>
             </el-table>
             <div class="pagination">
-                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000"></el-pagination>
+                <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
             </div>
         </div>
 
@@ -108,8 +108,8 @@
 </template>
 
 <script>
-    import ajax from '../../utils/fetch'
-
+    import ajax from '../../utils/fetch';
+    import moment from 'moment';
     export default {
         name: 'InvestorInformation',
         data() {
@@ -150,8 +150,9 @@
                     }
                 },
                 page: {
-                    pageindex: '',
+                    pageindex: 1,
                     pagesize: 20,
+                    counttotal: 0,
                 },
                 dialogData: {
                     rules: {
@@ -186,13 +187,12 @@
             }
         },
         created() {
-            this.getData();
+
         },
         methods: {
             // 分页导航
             handleCurrentChange(val) {
-                this.cur_page = val;
-                this.getData();
+                this.page.pageindex = val;
             },
             add () {
                 // if(this.dialogData.form.investmentaddress === '') {
@@ -214,33 +214,20 @@
                     legalname: this.dialogData.form.legalname,
                     legalcertificate: this.dialogData.form.legalcertificate
                 };
-                console.log(data)
                 ajax.post('/admin/addinterestedinfo', data)
                     .then(res => {
                         let {head, body} = res;
                         if (head && head.returncode === '0000') {
-                            let data = body.data;
+                            this.search();
+                            this.editVisible = false
                         }
-                        console.log(res)
                     })
                     .catch(e => {
                         console.log(e);
                     })
 
-                this.editVisible = false
             },
             // 获取 easy-mock 的模拟数据
-            getData() {
-                // 开发环境使用 easy-mock 数据，正式环境使用 json 文件
-                if (process.env.NODE_ENV === 'development') {
-                    this.url = '/ms/table/list';
-                };
-                this.$axios.post(this.url, {
-                    page: this.cur_page
-                }).then((res) => {
-                    this.tableData = res.data.list;
-                })
-            },
             search() {
                 // if(this.searchData.assetSelect.user === '') {
                 //     return this.$message.error('投资方名称不能为空');
@@ -250,7 +237,6 @@
                 //     return this.$message.error('投资日期不能为空');
                 // }
 
-                let moment = require("moment");
                 let data = {
                     pageindex:  this.cur_page,
                     pagesize: this.page.pagesize,
@@ -259,14 +245,15 @@
                     startdate: this.searchData.time?moment(this.searchData.time[0]).valueOf(): '',
                     enddate: this.searchData.time?moment(this.searchData.time[1]).valueOf(): '',
                 }
-                console.log(data)
-                ajax.post('admin/getinterestedlist', data)
+                ajax.post('/admin/getinterestedlist', data)
                     .then(res => {
                         let {head, body} = res;
                         if (head && head.returncode === '0000') {
-                            let data = body.data;
+                            if (body && body.list) {
+                                this.tableData = body.list;
+                            }
+                            this.page.counttotal = body.counttotal;
                         }
-                        console.log(res)
                     })
                     .catch(e => {
                         console.log(e);
