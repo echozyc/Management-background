@@ -15,15 +15,15 @@ Vue.use(Vue2Filters);
 Vue.use(VueMoment);
 Object.keys(filters).forEach(key => Vue.filter(key, filters[key]));
 //使用钩子函数对路由进行权限跳转
-router.beforeEach((to, from, next) => {
-    const role = localStorage.getItem('ms_username');
-    console.log(role);
-    if (!role) {
-        next('/login');
-    } else {
-        next();
-    }
-});
+// router.beforeEach((to, from, next) => {
+//     const role = localStorage.getItem('ms_username');
+//     console.log(role);
+//     if (!role) {
+//         next('/login');
+//     } else {
+//         next();
+//     }
+// });
 
 new Vue({
     router,
