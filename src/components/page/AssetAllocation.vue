@@ -49,17 +49,37 @@
             <el-table :data="tableData" border class="table" ref="multipleTable" >
                 <el-table-column prop="serialno" label="操作流水ID" width="150"></el-table-column>
                 <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
-                <el-table-column prop="country | formatCountry" label="资产类别" :formatter="formatter"></el-table-column>
-                <el-table-column prop="investedamount" label="投资金额（$）" :formatter="formatter"></el-table-column>
-                <el-table-column prop="annualizedinterestrate" label="投资利率" :formatter="formatter"></el-table-column>
-                <el-table-column prop="exchangerate" label="换算汇率" :formatter="formatter"></el-table-column>
-                <el-table-column prop="exchangeamount" label="投换算金额(万)" :formatter="formatter"></el-table-column>
-                <el-table-column prop="expectation" label="预期收益（$）" :formatter="formatter"></el-table-column>
-                <el-table-column prop="+startinterestdate | moment().valueOf()" label="投资日期" :formatter="formatter"></el-table-column>
-                <el-table-column prop="matchingnum" label="已配置标的数(个)" :formatter="formatter"></el-table-column>
-                <el-table-column prop="matchingstatus | formatInvestmenType" label="匹配状态" :formatter="formatter"></el-table-column>
-                <el-table-column prop="operatorname" label="操作人" :formatter="formatter"></el-table-column>
-                <el-table-column prop="+insertdatetime | moment().valueOf()" label="操作人时间" :formatter="formatter"></el-table-column>
+                <el-table-column prop="country" label="资产类别" :formatter="formatter">
+                    <template slot-scope="scope">
+                        {{+scope.row.country | formatCountry}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="investedamount" label="投资金额（$）" :formatter="formatter">
+                    <template slot-scope="scope">
+                        {{+scope.row.country | formatMoney}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="annualizedinterestrate" label="投资利率" ></el-table-column>
+                <el-table-column prop="exchangerate" label="换算汇率" ></el-table-column>
+                <el-table-column prop="exchangeamount" label="投换算金额(万)" ></el-table-column>
+                <el-table-column prop="expectation" label="预期收益（$）"></el-table-column>
+                <el-table-column prop="startinterestdate" label="投资日期">
+                    <template slot-scope="scope">
+                        {{+scope.row.startinterestdate | moment('YYYY-MM-DD')}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="matchingnum" label="已配置标的数(个)"></el-table-column>
+                <el-table-column prop="matchingstatus" label="匹配状态">
+                    <template slot-scope="scope">
+                        {{+scope.row.matchingstatus | formatAssetConfig}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="operatorname" label="操作人" ></el-table-column>
+                <el-table-column prop="insertdatetime" label="操作人时间">
+                    <template slot-scope="scope">
+                        {{+scope.row.insertdatetime | moment('YYYY-MM-DD')}}
+                    </template>
+                </el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="this.page.counttotal"></el-pagination>
@@ -166,10 +186,10 @@
                     </el-form-item>
                 </el-row>
                 <el-row>
-                    <el-table :data="newTableData" border>
-                        <el-table-column property="+investedstartdate | moment('YYYY-MM-DD')" label="起投时间">
+                    <el-table :data="multipleSelection" border>
+                        <el-table-column property="investedstartdate" label="起投时间">
                             <template slot-scope="scope">
-                                {{+scope.row.investedstartdate | moment('YYYY-MM-DD')}}
+                                {{+scope.row.time | moment('YYYY-MM-DD')}}
                             </template>
                         </el-table-column>
                         <el-table-column property="investedamount" label="投资金额" >
@@ -201,7 +221,7 @@
         name: 'basetable',
         data() {
             return {
-                editVisible: true,
+                editVisible: false,
                 editSureVisible: false,
                 searchData: {
                     assetSelect: {
@@ -290,6 +310,7 @@
                         annualizedinterestrate: '',
                         currency: '',
                         exchangerate: '',
+                        time: '',
                     },
                     {
                         investedstartdate: '',
@@ -298,6 +319,7 @@
                         annualizedinterestrate: '',
                         currency: '',
                         exchangerate: '',
+                        time: '',
                     },
                     {
                         investedstartdate: '',
@@ -306,6 +328,7 @@
                         annualizedinterestrate: '',
                         currency: '',
                         exchangerate: '',
+                        time: '',
                     },
                     {
                         investedstartdate: '',
@@ -314,6 +337,7 @@
                         annualizedinterestrate: '',
                         currency: '',
                         exchangerate: '',
+                        time: '',
                     }
                 ],
                 multipleSelection: [],
@@ -403,7 +427,7 @@
                 this.delVisible = true;
             },
             handleSelectionChange(val) {
-                console.log(val)
+                console.log(val);
                 this.multipleSelection = val;
             },
             // 保存编辑
@@ -412,10 +436,10 @@
                 this.editSureVisible = true;
                 this.newTableData.map(item => {
                     if (item.investedstartdate) {
-                        item.investedstartdate = '' + moment(item.investedstartdate).valueOf();
+                        item.time = '' + moment(item.investedstartdate).valueOf();
                     }
                 });
-                ajax.post('/admin/addassetsconfiginfo', this.newTableData)
+                ajax.post('/admin/addassetsconfiginfo', this.multipleSelection)
                 .then(res => {
                     let {head, body} = res;
                     if (head && head.returncode === '0000') {
@@ -429,18 +453,18 @@
             },
             editSureClick() {
                 this.editSureVisible = false;
-                this.newTableData.map(item => {
-                    if (item.investedstartdate) {
-                        item.investedstartdate = '';
-                    }
-                });
+                // this.newTableData.map(item => {
+                //     if (item.investedstartdate) {
+                //         item.investedstartdate = '';
+                //     }
+                // });
             },
             editSureCancleClick() {
-                this.newTableData.map(item => {
-                    if (item.investedstartdate) {
-                        item.investedstartdate = '';
-                    }
-                });
+                // this.newTableData.map(item => {
+                //     if (item.investedstartdate) {
+                //         item.investedstartdate = '';
+                //     }
+                // });
                 this.editVisible = true;
                 this.editSureVisible = false;
             },

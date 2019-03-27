@@ -18,7 +18,7 @@ Object.keys(filters).forEach(key => Vue.filter(key, filters[key]));
 router.beforeEach((to, from, next) => {
     const role = localStorage.getItem('ms_username');
     console.log(role);
-    if (!role && to.path !== '/login') {
+    if (!role) {
         next('/login');
     } else {
         next();

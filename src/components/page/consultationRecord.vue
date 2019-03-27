@@ -34,14 +34,26 @@
                     </el-form-item>
                 </el-form>
             </div>
-            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
+            <el-table :data="tableData" border class="table" >
                 <el-table-column prop="investmentname" label="投资人名称" width="150"></el-table-column>
-                <el-table-column prop="investmentamount" label="计划投资金额" width="120"></el-table-column>
-                <el-table-column prop="contactperson" label="联系人名称" :formatter="formatter"></el-table-column>
-                <el-table-column prop="investmentphone" label="联系电话" :formatter="formatter"></el-table-column>
-                <el-table-column prop="investmentemail" label="联系邮箱" :formatter="formatter"></el-table-column>
-                <el-table-column prop="status | formatOperateStatus" label="处理状态" :formatter="formatter"></el-table-column>
-                <el-table-column prop="optiontype | formatOperaType" label="操作" :formatter="formatter"></el-table-column>
+                <el-table-column prop="investmentamount" label="计划投资金额" width="120">
+                    <template slot-scope="scope">
+                        {{+scope.row.investmentamount | formatMoney}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="contactperson" label="联系人名称"></el-table-column>
+                <el-table-column prop="investmentphone" label="联系电话" ></el-table-column>
+                <el-table-column prop="investmentemail" label="联系邮箱"></el-table-column>
+                <el-table-column prop="status" label="处理状态" >
+                    <template slot-scope="scope">
+                        {{scope.row.status | formatOperateStatus}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="optiontype" label="操作">
+                    <template slot-scope="scope">
+                        {{scope.row.optiontype | formatOperaType}}
+                    </template>
+                </el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
@@ -98,7 +110,6 @@
                     pagesize: 20,
                     counttotal: 0,
                 },
-                multipleSelection: [],
                 submitData: {
                     name: '',
                     start: '',
@@ -108,7 +119,7 @@
             }
         },
         created() {
-
+            // this.search();
         },
         methods: {
             // 分页导航
@@ -147,15 +158,6 @@
                     .catch(e => {
                         console.log(e);
                     })
-            },
-            formatter(row, column) {
-                return row.address;
-            },
-            filterTag(value, row) {
-                return row.tag === value;
-            },
-            handleSelectionChange(val) {
-                this.multipleSelection = val;
             },
         }
     }

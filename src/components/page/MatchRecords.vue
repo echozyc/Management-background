@@ -42,18 +42,34 @@
                     </el-form-item>
                 </el-form>
             </div>
-            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
+            <el-table :data="tableData" border class="table" ref="multipleTable">
                 <el-table-column prop="serialno" label="匹配流水ID" width="150"></el-table-column>
                 <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
-                <el-table-column prop="orderid" label="借款订单号" :formatter="formatter"></el-table-column>
-                <el-table-column prop="name" label="借款人" :formatter="formatter"></el-table-column>
-                <el-table-column prop="address" label="借款人所在地" :formatter="formatter"></el-table-column>
-                <el-table-column prop="sex" label="性别" :formatter="formatter"></el-table-column>
-                <el-table-column prop="amount" label="借款金额（$）" :formatter="formatter"></el-table-column>
-                <el-table-column prop="days" label="借款天数" :formatter="formatter"></el-table-column>
-                <el-table-column prop="startdate" label="起投日期" :formatter="formatter"></el-table-column>
-                <el-table-column prop="enddate" label="到期日期" :formatter="formatter"></el-table-column>
-                <el-table-column prop="status | formatPayBack" label="还款状态" :formatter="formatter"></el-table-column>
+                <el-table-column prop="orderid" label="借款订单号" ></el-table-column>
+                <el-table-column prop="name" label="借款人" ></el-table-column>
+                <el-table-column prop="address" label="借款人所在地" ></el-table-column>
+                <el-table-column prop="sex" label="性别" ></el-table-column>
+                <el-table-column prop="amount" label="借款金额（$）" >
+                    <template slot-scope="scope">
+                        {{+scope.row.amount | formatMoney}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="days" label="借款天数" ></el-table-column>
+                <el-table-column prop="startdate" label="起投日期" >
+                    <template slot-scope="scope">
+                        {{+scope.row.startdate | moment('YYYY-MM-DD')}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="enddate" label="到期日期" >
+                    <template slot-scope="scope">
+                        {{+scope.row.enddate | moment('YYYY-MM-DD')}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="status" label="还款状态" >
+                    <template slot-scope="scope">
+                        {{scope.row.status | formatPayBack}}
+                    </template>
+                </el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
@@ -70,7 +86,6 @@
         name: 'MatchRecords',
         data() {
             return {
-                url: './static/vuetable.json',
                 searchData: {
                     assetSelect: {
                         user: '',
@@ -107,7 +122,6 @@
                     }
                 },
                 tableData: [],
-                multipleSelection: [],
                 submitData: {
                     user: '',
                     region: '',
@@ -126,9 +140,6 @@
             this.search();
         },
         methods: {
-            handleSelectionChange(val) {
-                this.multipleSelection = val;
-            },
             // 分页导航
             handleCurrentChange(val) {
                 this.page.pageindex = val;
@@ -173,9 +184,6 @@
                         console.log(e);
                     })
 
-            },
-            formatter(row, column) {
-                return row.address;
             },
             filterTag(value, row) {
                 return row.tag === value;

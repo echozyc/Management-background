@@ -4,7 +4,7 @@ import {countryMap, investmenTypeMap, assetConfigMap, payBackMap,tradeTypeMap,op
  * @output 222,222.00
  * */
 export function formatMoney(fen) {
-    const num1 = (+fen/100).toFixed(2) + ' ';
+    const num1 = (+fen).toFixed(2) + ' ';
     return num1.replace(/\B(?=(\d{3})+(\.\d{1,2})?\b)/g,',')
 }
 export function formatCountry(val) {
@@ -13,7 +13,7 @@ export function formatCountry(val) {
 export function formatInvestmenType(val) {
     return investmenTypeMap[val];
 }
-export function formatAssetConfige(val) {
+export function formatAssetConfig(val) {
     return assetConfigMap[val];
 }
 export function formatPayBack(val) {

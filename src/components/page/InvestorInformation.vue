@@ -36,18 +36,21 @@
                     <el-button type="primary" @click="editVisible = true">新增用户</el-button>
                 </el-row>
             </div>
-            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
-                <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="investmentid" label="用户ID" sortable width="150"></el-table-column>
-                <el-table-column prop="investmenttype" label="投资人类型" width="120"></el-table-column>
-                <el-table-column prop="investmentname" label="投资人名称" :formatter="formatter"></el-table-column>
-                <el-table-column prop="legalcertificate" label="证件号" :formatter="formatter"></el-table-column>
-                <el-table-column prop="investmentemail" label="开户邮箱" :formatter="formatter"></el-table-column>
-                <el-table-column prop="contactperson" label="业务联系人" :formatter="formatter"></el-table-column>
-                <el-table-column prop="investmentphone" label="联系电话" :formatter="formatter"></el-table-column>
-                <el-table-column prop="investmentaddress" label="联系地址" :formatter="formatter"></el-table-column>
-                <el-table-column prop="legalname" label="法人姓名" :formatter="formatter"></el-table-column>
-                <el-table-column prop="legalcertificate" label="法人证件号" :formatter="formatter"></el-table-column>
+            <el-table :data="tableData" border class="table" ref="multipleTable" >
+                <el-table-column prop="investmentid" label="用户ID" width="150"></el-table-column>
+                <el-table-column prop="investmenttype" label="投资人类型" width="120">
+                    <template slot-scope="scope">
+                        {{+scope.row.investmenttype | formatInvestmenType}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="investmentname" label="投资人名称" ></el-table-column>
+                <el-table-column prop="legalcertificate" label="证件号"></el-table-column>
+                <el-table-column prop="investmentemail" label="开户邮箱" ></el-table-column>
+                <el-table-column prop="contactperson" label="业务联系人" ></el-table-column>
+                <el-table-column prop="investmentphone" label="联系电话"></el-table-column>
+                <el-table-column prop="investmentaddress" label="联系地址" ></el-table-column>
+                <el-table-column prop="legalname" label="法人姓名" ></el-table-column>
+                <el-table-column prop="legalcertificate" label="法人证件号"></el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
@@ -96,14 +99,6 @@
             </span>
         </el-dialog>
 
-        <!-- 删除提示框 -->
-        <el-dialog title="提示" :visible.sync="delVisible" width="300px" center>
-            <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="delVisible = false">取 消</el-button>
-                <el-button type="primary" @click="deleteRow">确 定</el-button>
-            </span>
-        </el-dialog>
     </div>
 </template>
 
@@ -114,7 +109,6 @@
         name: 'InvestorInformation',
         data() {
             return {
-                url: './static/vuetable.json',
                 searchData: {
                     assetSelect: {
                         user: '',
@@ -259,41 +253,7 @@
                         console.log(e);
                     })
             },
-            formatter(row, column) {
-                return row.address;
-            },
-            filterTag(value, row) {
-                return row.tag === value;
-            },
-            handleEdit(index, row) {
-                this.idx = index;
-                const item = this.tableData[index];
-                this.form = {
-                    name: item.name,
-                    date: item.date,
-                    address: item.address
-                }
-                this.editVisible = true;
-            },
-            handleDelete(index, row) {
-                this.idx = index;
-                this.delVisible = true;
-            },
-            handleSelectionChange(val) {
-                this.multipleSelection = val;
-            },
-            // 保存编辑
-            saveEdit() {
-                this.$set(this.tableData, this.idx, this.form);
-                this.editVisible = false;
-                this.$message.success(`修改第 ${this.idx+1} 行成功`);
-            },
-            // 确定删除
-            deleteRow(){
-                this.tableData.splice(this.idx, 1);
-                this.$message.success('删除成功');
-                this.delVisible = false;
-            }
+
         }
     }
 

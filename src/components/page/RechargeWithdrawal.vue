@@ -38,15 +38,27 @@
                     <el-button type="primary" @click="withdraw">提现</el-button>
                 </el-row>
             </div>
-            <el-table :data="tableData" border class="table" ref="multipleTable" @selection-change="handleSelectionChange">
+            <el-table :data="tableData" border class="table">
                 <el-table-column prop="serialno" label="操作流水号" width="150"></el-table-column>
                 <el-table-column prop="investmentname" label="投资人名称" width="120"></el-table-column>
-                <el-table-column prop="trandtype | formatTradeType" label="交易类型" :formatter="formatter"></el-table-column>
-                <el-table-column prop="amount" label="金额（$）" :formatter="formatter"></el-table-column>
-                <el-table-column prop="operatorid" label="操作人Id" :formatter="formatter"></el-table-column>
-                <el-table-column prop="operatorname" label="操作人" :formatter="formatter"></el-table-column>
-                <el-table-column prop="updatedatetime" label="操作时间" :formatter="formatter"></el-table-column>
-                <el-table-column prop="summary" label="备注" :formatter="formatter"></el-table-column>
+                <el-table-column prop="trandtype" label="交易类型">
+                    <template slot-scope="scope">
+                        {{+scope.row.trandtype | formatTradeType}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="amount" label="金额（$）" >
+                    <template slot-scope="scope">
+                        {{+scope.row.amount | formatMoney}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="operatorid" label="操作人Id" ></el-table-column>
+                <el-table-column prop="operatorname" label="操作人"></el-table-column>
+                <el-table-column prop="updatedatetime" label="操作时间" >
+                    <template slot-scope="scope">
+                        {{+scope.row.updatedatetime | moment('YYYY-MM-DD')}}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="summary" label="备注" ></el-table-column>
             </el-table>
             <div class="pagination">
                 <el-pagination background @current-change="handleCurrentChange" layout="prev, pager, next" :total="page.counttotal"></el-pagination>
@@ -114,14 +126,6 @@
             </span>
         </el-dialog>
 
-        <!-- 删除提示框 -->
-        <el-dialog title="提示" :visible.sync="delVisible" width="300px" center>
-            <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="delVisible = false">取 消</el-button>
-                <el-button type="primary" @click="deleteRow">确 定</el-button>
-            </span>
-        </el-dialog>
     </div>
 </template>
 
@@ -173,11 +177,9 @@
                     counttotal: 0,
                 },
                 tableData: [],
-                multipleSelection: [],
                 editVisible: false,
                 editVisible2: false,
 
-                delVisible: false,
                 rechargeForm: {
                     name: '',
                     num: '',
@@ -192,7 +194,6 @@
                     text: '',
                     id: '',
                 },
-                idx: -1
             }
         },
         created() {
@@ -292,12 +293,6 @@
 
             },
 
-            formatter(row, column) {
-                return row.address;
-            },
-            filterTag(value, row) {
-                return row.tag === value;
-            },
             handleEdit(index, row) {
                 this.idx = index;
                 const item = this.tableData[index];
@@ -308,25 +303,7 @@
                 }
                 this.editVisible = true;
             },
-            handleDelete(index, row) {
-                this.idx = index;
-                this.delVisible = true;
-            },
-            handleSelectionChange(val) {
-                this.multipleSelection = val;
-            },
-            // 保存编辑
-            saveEdit() {
-                this.$set(this.tableData, this.idx, this.form);
-                this.editVisible = false;
-                this.$message.success(`修改第 ${this.idx+1} 行成功`);
-            },
-            // 确定删除
-            deleteRow(){
-                this.tableData.splice(this.idx, 1);
-                this.$message.success('删除成功');
-                this.delVisible = false;
-            }
+
         }
     }
 
